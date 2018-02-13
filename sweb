@@ -1,0 +1,39 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+SWEBFOLDER="~/Working/sweb"
+QEMUX86FOLDER="/home/theuema/Working/qemu/build_x86_64_debug/x86_64-softmmu"
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Arguments: $0 'build' 'debugstart' 'start' 'clean'"
+  exit $E_BADARGS
+else
+  arg=$1
+fi
+
+if [ $arg == "build" ]
+then
+  mkdir -p /tmp/sweb; cd /tmp/sweb;
+  cmake ${SWEBFOLDER}
+  #CC=gcc-6 CC=g++-6 make mrproper
+  #make #debug
+  make -j #multithreading
+elif [ $arg == "debugstart" ]
+then
+  cd /tmp/sweb;
+  ${QEMUX86FOLDER}/qemu-system-x86_64 -s -m 8M -drive file=SWEB-flat.vmdk,index=0,media=disk,format=raw -trace events=/tmp/events -debugcon stdio -no-reboot
+else
+  if [ $arg == "start" ]
+  then
+    cd /tmp/sweb
+     ${QEMUX86FOLDER}/qemu-system-x86_64 -m 8M -cpu qemu64 -drive file=SWEB-flat.vmdk,index=0,media=disk,format=raw -debugcon stdio -no-reboot
+   elif [ $arg == "clean" ]
+    then
+      rm -rf /tmp/sweb/
+   else
+    echo "Unknown Argument"
+    exit $E_BADARGS
+    fi
+fi
